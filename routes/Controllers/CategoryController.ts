@@ -7,7 +7,12 @@ export const listCategory = async (req, res) => {
 
     const categoryId = await Category.findOne({name: category});
 
-    const posts = await Post.find({category: categoryId});
+    if(categoryId){
+        const posts = await Post.find({category: categoryId});
 
-    res.json({posts});
+        res.json({posts});
+    }
+    else{
+        res.json({message: "no se encontró esta categoria, ¿quiere crearla?, ¡realize un post!"});
+    }
 }

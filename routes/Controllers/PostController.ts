@@ -9,65 +9,97 @@ export const createPost = async (req, res) => {
 
     const {title, content, userid, category} = req.body;
 
-    // Create the Post
-
-    const post = new Post();
-    post.title = title;
-    post.content = content;
-
-    // Get the User and Category entity,
-
     const user = await User.findOne({nickname: userid});
-    post.craftedBy = user;                    // Validar si existe el usuario!
 
-    const categoryId = await Category.findOne({name: category});
-    // Si no existe la categoria crearla
+    if(user){
 
-    if(!categoryId){
-      const categoryNew = new Category();
-      categoryNew.name = category;
-      await categoryNew.save();
-      post.category = categoryNew;
+      const post = new Post();
+      if (title && content){
+        post.title = title;
+        post.content = content;
+      }
+      else{
+        res.status(400).json({message: "No se han encontrado los valores validos para realizar la operación"});
+      }
+      post.craftedBy = user;
+
+      const categoryId = await Category.findOne({name: category});
+
+      if(!categoryId){
+        const categoryNew = new Category();
+        categoryNew.name = category;
+        try {
+
+          await categoryNew.save();
+
+        } catch (error) {
+
+          res.status(500).json({message: "Error DB"});
+
+        }
+        
+        post.category = categoryNew;
+      }
+      else{
+        post.category = categoryId;
+      }
+
+      try {
+        
+        await post.save();
+
+        res.status(201).json({ post: Post, message: "The post was created succesfully" });
+
+      } catch (error) {
+        res.status(500).json({ message: "Error DB" });
+      }
     }
     else{
-      post.category = categoryId;
+      res.status(401).json({message: "el usuario que se ingresó no está registrado"});
     }
-
-    await post.save();
-
-    // Respond
-
-    res.json({ post: Post, message: "The post was created succesfully" });
-
 }
 
 export const listPostsByUser = async (req, res) => {
   const user = req.headers.userid;
   const category = req.headers.category;
 
-  const userId = await User.findOne({nickname: user});
+  if(user){
+    const userId = await User.findOne({nickname: user});
 
-  console.log(category);
-
-  if (category === undefined){    
-    const posts = await Post.find({craftedBy: userId});
-
-    res.json({posts});
-  }
-  else {
-    const categoryId = await Category.findOne({name: category});
-
-    const posts = await Post.find({craftedBy: userId, category: categoryId});
+    if(userId){
+      if (category === undefined){
+        const posts = await Post.find({craftedBy: userId});
     
-    res.json({posts});
+        res.status(200).json({posts});
+      }
+      else {
+        const categoryId = await Category.findOne({name: category});
+    
+        const posts = await Post.find({craftedBy: userId, category: categoryId});
+        
+        res.status(200).json({posts});
+      }
+    }
+    else{
+      res.status(404).json({message: "No se a encontrado el usuario ingresado"});
+    }
   }
+  else{
+    res.status(400).json({message: "No se han encontrado los valores validos para realizar la operación"});
+  }
+
+  
 }
 
 export const listPosts = async (req, res) => {
 
   const content = req.headers.content;  
-  
-  const posts = await Post.find({content: Like("%" + content + "%")});
+  if(content){
+    const posts = await Post.find({content: Like("%" + content + "%")});
 
-  res.json({posts});
+    res.json({posts});
+  }
+  else{
+    res.status(400).json({message: "No se han encontrado los valores validos para realizar la operación"})
+  }
 }

@@ -1,19 +1,24 @@
 import { User } from "../../orm/entity/User";
 
-export const createUser = async (req, res) => {
+export const createUser = async (req, res) => {    
     const nickname = req.body.nickname;
 
-    const user = new User();
-    user.nickname = nickname;
-    user.isActive = true;
+    if(nickname){
+        const user = new User();
+        user.nickname = nickname;
+        user.isActive = true;
 
-    try {
-        await user.save();
+        try {
+            await user.save();
 
-        res.json({message: 'Todo bien', user});
+            res.status(201).json({message: 'Usuario creado!', user});
+        }
+        catch (e) {
+            res.status(500).end('DB error');
+        }
     }
-    catch (e) {
-        res.status(500).end('DB error');
+    else{
+        res.status(400).json({message: "No se han encontrado los valores validos para realizar la operación"});
     }
 }
 
@@ -23,9 +28,14 @@ export const listUser = async (req, res) => {
 
     const { userid } = req.headers;
 
-    const user = await User.findOne({nickname: userid});
+    if(userid){
+        const user = await User.findOne({nickname: userid});
 
-    // Respond
+        // Respond
 
-    res.json({ user });
+        res.status(200).json({ user });
+    }
+    else{
+        res.status(400).json({message: "No se han encontrado los valores validos para realizar la operación"});
+    }
 }
