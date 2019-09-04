@@ -1,9 +1,9 @@
 # NodeTrabajoPracticoDB
-Trabajo practico para el modulo de base de datos
-
-
-##Busqueda de usuarios por nickname.
-  Pegarle al endpoint /user con un get con el siguiente objeto en los headers:
+Trabajo practico para el modulo de base de datos.\n
+\n
+\n
+##Busqueda de usuarios por nickname.\n
+  Pegarle al endpoint /user con un get con el siguiente objeto en los headers:\n
     {
       userid: usuario a buscar
     }
